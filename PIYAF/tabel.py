@@ -3,26 +3,26 @@ import excel_format
 
 fl = open("tabel.ini", "r", encoding="utf-8")
 lines = fl.readlines()
-dir = None
+path = None
 fn = None
 
 for item in lines:
     com = item.split("=")
-    if com[0].strip() == "папка":
-        dir = com[1].strip()
+    if com[0].strip() == "path":
+        path = com[1].strip()
     elif com[0].strip() == "актуальный файл":
         fn = com[1].strip()
 
-if dir is None:
+if path is None:
     print("Отсутствует значение 'папка' в ini файле")
 if fn is None:
     print("Отсутствует значение 'актуальный файл' в ini файле")
 
-file_path = dir + "\\" + "Шаблон.xlsx"
+pathShablon = path + "\\" + "Шаблон.xlsx"
 
-excel_doc = op.open(filename = file_path, data_only = False)
-sheetnames = excel_doc.sheetnames
-sheet = excel_doc[sheetnames[0]]
+excelShablon = op.open(filename = pathShablon, data_only = False)
+# sheetnames = excelShablon.sheetnames
+sheet = excelShablon['Работники']
 
 spisok = []
 nColumn = 1
@@ -58,10 +58,11 @@ for person in spisok:
         col += 1
     row += 1
 
-excel_format.border(sheet, True, 23, 25, 1, 8)
+excel_format.tabelCreate(spisok, path)
 
-excel_doc.save(file_path)
-excel_doc.close
+excel_format.border(sheet, True)
+excelShablon.save(pathShablon)
+excelShablon.close
 
 # excel_doc.create_sheet(title = "Проверочный лист", index = 0)
 # excel_doc.save(file_path)

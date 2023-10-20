@@ -1,5 +1,8 @@
+import datetime
 import openpyxl as op
 import openpyxl.styles as st
+import os.path
+import createTabel as create
 def border(sheet: op.worksheet, arg = False, nRowStart = 0, nRowFinis = 0, nColStart = 0, nColFinis = 0):
     # arg = True - бордюр рисуется
     #arg = False - бордюр убирается
@@ -33,3 +36,53 @@ def border(sheet: op.worksheet, arg = False, nRowStart = 0, nRowFinis = 0, nColS
             else:
                 currentCell.border=st.Border(top=None, left=None, right=None, bottom=None)
 
+def getMonth(n = 0, arg = 'Name', year = 0):
+    if year == 0:
+        year = datetime.datetime.now().year
+
+    if n == 0:
+        n = datetime.datetime.now().month
+
+    months = ['Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь',
+              'Июль', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь']
+    days = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
+    if year % 4 == 0:
+        days[1] = 29
+
+    if arg == "Name":
+        return months[n - 1]
+    elif arg == "count":
+        return days[n - 1]
+
+
+def tabelCreate(spisok, path: str, year = 0, month = 0):
+    if year == 0:
+        year = datetime.datetime.now().year
+        month = datetime.datetime.now().month
+
+    filename = f"{path}\\Табель {year}.xlsx"
+    if os.path.exists(filename):
+        #Открываем существующий файл
+        wbFileTabel = op.open(filename=filename, data_only=False)
+    else:
+        #Создаем файл
+        wbFileTabel = op.Workbook()
+
+    sheets = wbFileTabel.sheetnames
+    currentSheet = None
+    sheetName = f"{year} {getMonth(month)}"
+
+    for sheet in sheets:
+        if sheet == 'Sheet':
+            currentSheet = sheet
+            wbFileTabel[currentSheet].title = sheetName
+            create.createNewTable(spisok, wbFileTabel[sheetName], path)
+        elif sheet == sheetName:
+            currentSheet = sheet
+            break
+
+    if currentSheet is None:
+        wbFileTabel.create_sheet(sheetName)
+        create.createNewTable(spisok, wbFileTabel[sheetName], path)
+
+    wbFileTabel.save(filename=filename)
