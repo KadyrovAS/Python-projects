@@ -4,19 +4,15 @@ import excel_format
 fl = open("tabel.ini", "r", encoding="utf-8")
 lines = fl.readlines()
 path = None
-fn = None
 
 for item in lines:
     com = item.split("=")
     if com[0].strip() == "path":
         path = com[1].strip()
-    elif com[0].strip() == "актуальный файл":
-        fn = com[1].strip()
 
 if path is None:
     print("Отсутствует значение 'папка' в ini файле")
-if fn is None:
-    print("Отсутствует значение 'актуальный файл' в ini файле")
+
 
 pathShablon = path + "\\" + "Шаблон.xlsx"
 
@@ -33,23 +29,13 @@ nColumn -= 1
 row = 2
 while sheet.cell(row = row, column = 1).value is not None:
     person = [sheet.cell(row = row, column=col).value for col in range(1, nColumn + 1)]
+    if person[3] is None:
+        person[3] = " "
     spisok.append(person)
     row += 1
 
-for i in range(len(spisok) - 1):
-    for k in range(i + 1, len(spisok)):
-        for j in range(nColumn):
-            if spisok[i][j] is None or spisok[k][j] is None:
-                continue
-            arg1 = spisok[i][j]
-            arg2 = spisok[k][j]
-            if spisok[i][j] == spisok[k][j]:
-                continue
-            elif spisok[i][j] < spisok[k][j]:
-                break
-            else:
-                spisok[i], spisok[k] = spisok[k], spisok[i]
-                break
+excel_format.sortSpisok(spisok, True)
+
 row = 2
 for person in spisok:
     col = 1
@@ -58,11 +44,10 @@ for person in spisok:
         col += 1
     row += 1
 
+excel_format.sortSpisok(spisok)
 excel_format.tabelCreate(spisok, path)
 
 excel_format.border(sheet, True)
 excelShablon.save(pathShablon)
 excelShablon.close
 
-# excel_doc.create_sheet(title = "Проверочный лист", index = 0)
-# excel_doc.save(file_path)

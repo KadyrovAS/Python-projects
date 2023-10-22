@@ -36,23 +36,27 @@ def border(sheet: op.worksheet, arg = False, nRowStart = 0, nRowFinis = 0, nColS
             else:
                 currentCell.border=st.Border(top=None, left=None, right=None, bottom=None)
 
-def getMonth(n = 0, arg = 'Name', year = 0):
+def getMonth(month = 0, arg = 'Name', year = 0):
     if year == 0:
         year = datetime.datetime.now().year
 
-    if n == 0:
-        n = datetime.datetime.now().month
+    if month == 0:
+        month = datetime.datetime.now().month
 
     months = ['Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь',
               'Июль', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь']
+    monthsR = ['Января', 'Февраля', 'Марта', 'Апреля', 'Мая', 'Июня',
+               'Июля', 'Августа', 'Сентября', 'Октября', 'Ноября', 'Декабря']
     days = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
     if year % 4 == 0:
         days[1] = 29
 
     if arg == "Name":
-        return months[n - 1]
+        return months[month - 1]
+    elif arg == "NameR":
+        return monthsR[month - 1]
     elif arg == "count":
-        return days[n - 1]
+        return days[month - 1]
 
 
 def tabelCreate(spisok, path: str, year = 0, month = 0):
@@ -86,3 +90,20 @@ def tabelCreate(spisok, path: str, year = 0, month = 0):
         create.createNewTable(spisok, wbFileTabel[sheetName], path)
 
     wbFileTabel.save(filename=filename)
+
+def sortSpisok(spisok : list, brench = False):
+    if brench:
+        start = 0
+    else:
+        start = 1
+    #Сортировка списка по алфавиту
+    for i in range(len(spisok) - 1):
+        for k in range(i + 1, len(spisok)):
+            for j in range(start, 4):
+                if spisok[i][j] > spisok[k][j]:
+                    spisok[i], spisok[k] = spisok[k], spisok[i]
+                    break
+                elif spisok[i][j] == spisok[k][j]:
+                    continue
+                else:
+                    break
