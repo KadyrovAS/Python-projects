@@ -15,6 +15,7 @@ if path is None:
 
 
 pathShablon = path + "\\" + "Шаблон.xlsx"
+excel_format.create_holidays(pathShablon)
 
 excelShablon = op.open(filename = pathShablon, data_only = False)
 # sheetnames = excelShablon.sheetnames

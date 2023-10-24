@@ -57,6 +57,13 @@ def getMonth(month = 0, arg = 'Name', year = 0):
         return monthsR[month - 1]
     elif arg == "count":
         return days[month - 1]
+    elif arg == "month":
+        return month
+    elif arg == "date":
+        dt = datetime.datetime.now()
+        return f'{dt.day}:{dt.month}:{dt.year}'
+    elif arg == "year":
+        return year
 
 
 def tabelCreate(spisok, path: str, year = 0, month = 0):
@@ -107,3 +114,60 @@ def sortSpisok(spisok : list, brench = False):
                     continue
                 else:
                     break
+
+def create_holidays(pathShablon):
+    #TODO
+    excelShablon = op.open(filename=pathShablon, data_only=False)
+    sheet = excelShablon['Выходные']
+    holidays = []
+    row = 1
+    while sheet.cell(row = row, column = 1).value is not None:
+        lines = sheet.cell(row = row, column = 1).value.split()
+        if lines[0] == "Выходные":
+            row += 1
+            continue
+        sheet.cell(row = row, column = 1).value = ""
+        holidays.append(lines[0])
+        row += 1
+
+    month = getMonth(arg = 'month') - 1
+    if month == 0:
+        month = 12
+    for m in range(month, month + 2):
+        if m == month == 12:
+            year = getMonth(arg='year') - 1
+        else:
+            year = getMonth(arg='year')
+        n = getMonth(arg='count', month = month, year=year)
+        for day in range(1, n + 1):
+            date = datetime.datetime(year, m, day)
+            if date.weekday() + 1 == 6 or date.weekday() + 1 == 7:
+                dd = date.day
+                mm = date.month
+                yy = date.year
+                dd = f'0{dd}' if dd < 10 else f'{dd}'
+                mm = f'0{mm}' if mm < 10 else f'{mm}'
+                dt = f'{dd}:{mm}:{date.year}'
+
+                if not dt in holidays:
+                    holidays.append(dt)
+    for i in range(len(holidays) - 1):
+        dmy = holidays[i].split(":")
+        dt1 = dmy[2] + dmy[1] + dmy[0]
+        for k in range(i + 1, len(holidays)):
+            dmy = holidays[k].split(":")
+            dt2 = dmy[2] + dmy[1] + dmy[0]
+            if dt1 > dt2:
+                holidays[i], holidays[k] = holidays[k], holidays[i]
+    row = 1
+    sheet.cell(row=row, column=1).value = f"Выходные {getMonth(month=month, arg='NameR')}"
+    for dt in holidays:
+        dts = dt.split(":")
+        mm = int(dts[1])
+        row += 1
+        if mm != month:
+            month = mm
+            sheet.cell(row=row, column=1).value = f"Выходные {getMonth(month=month, arg='NameR')}"
+            continue
+        sheet.cell(row = row, column = 1).value = dt
+    excelShablon.save(pathShablon)
