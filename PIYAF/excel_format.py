@@ -3,6 +3,26 @@ import openpyxl as op
 import openpyxl.styles as st
 import os.path
 import createTabel as create
+
+holidays = []
+def to_box_border(sheet, row1, row2, col1, col2):
+    thin = st.Side(border_style="double", color="000000")  # параметры тонкой линии
+    for col in range(col1, col2 + 1):
+        sheet.cell(row=row1, column=col).border = st.Border(top=thin)
+        sheet.cell(row=row2, column=col).border = st.Border(bottom=thin)
+    for row in range(row1, row2 + 1):
+        sheet.cell(row=row, column=col1).border = st.Border(left=thin)
+        sheet.cell(row=row, column=col2).border = st.Border(right=thin)
+    sheet.cell(row=row1, column=col1).border = st.Border(left=thin, top=thin)
+    sheet.cell(row=row1, column=col2).border = st.Border(right=thin, top=thin)
+    sheet.cell(row=row2, column=col1).border = st.Border(left=thin, bottom=thin)
+    sheet.cell(row=row2, column=col2).border = st.Border(right=thin, bottom=thin)
+
+
+def to_some_borders(sheet, row, column1, column2):
+    thin = st.Side(border_style="thin", color="000000")  # параметры тонкой линии
+    for col in range(column1, column2 + 1):
+        sheet.cell(row=row, column=col).border = st.Border(bottom=thin)
 def border(sheet: op.worksheet, arg = False, nRowStart = 0, nRowFinis = 0, nColStart = 0, nColFinis = 0):
     # arg = True - бордюр рисуется
     #arg = False - бордюр убирается
@@ -116,7 +136,7 @@ def sortSpisok(spisok : list, brench = False):
                     break
 
 def create_holidays(pathShablon):
-    #TODO
+    global holidays
     excelShablon = op.open(filename=pathShablon, data_only=False)
     sheet = excelShablon['Выходные']
     holidays = []
@@ -133,12 +153,27 @@ def create_holidays(pathShablon):
     month = getMonth(arg = 'month') - 1
     if month == 0:
         month = 12
+
+    for m in range(len(holidays) - 1, -1, -1):
+        dmy = holidays[m].split(":")
+        mm = int(dmy[1])
+        if mm < month or mm == 12 and month != 12:
+            holidays.pop(m)
+
     for m in range(month, month + 2):
         if m == month == 12:
             year = getMonth(arg='year') - 1
         else:
             year = getMonth(arg='year')
-        n = getMonth(arg='count', month = month, year=year)
+        n = getMonth(arg='count', month = m, year=year)
+        found = False
+        for holiday in holidays:
+            dmy = holiday.split(":")
+            if int(dmy[1]) == m:
+                found = True
+                break
+        if found:
+            continue
         for day in range(1, n + 1):
             date = datetime.datetime(year, m, day)
             if date.weekday() + 1 == 6 or date.weekday() + 1 == 7:
@@ -147,10 +182,11 @@ def create_holidays(pathShablon):
                 yy = date.year
                 dd = f'0{dd}' if dd < 10 else f'{dd}'
                 mm = f'0{mm}' if mm < 10 else f'{mm}'
-                dt = f'{dd}:{mm}:{date.year}'
+                dt = f'{dd}:{mm}:{yy}'
 
-                if not dt in holidays:
+                if not found:
                     holidays.append(dt)
+
     for i in range(len(holidays) - 1):
         dmy = holidays[i].split(":")
         dt1 = dmy[2] + dmy[1] + dmy[0]
@@ -168,6 +204,30 @@ def create_holidays(pathShablon):
         if mm != month:
             month = mm
             sheet.cell(row=row, column=1).value = f"Выходные {getMonth(month=month, arg='NameR')}"
-            continue
+            row += 1
         sheet.cell(row = row, column = 1).value = dt
     excelShablon.save(pathShablon)
+
+def is_holiday(dt=None, day = 0):
+    global holidays
+    if dt == None:
+        dt = f'{day}:{getMonth(arg="month")}:{getMonth(arg="year")}'
+
+    dt_list = list(map(int, dt.split(':')))
+    dd = f'0{dt_list[0]}' if dt_list[0] < 10 else dt_list[0]
+    mm = f'0{dt_list[1]}' if dt_list[1] < 10 else dt_list[1]
+
+    dt = f'{dd}:{mm}:{getMonth(arg="year")}'
+    return dt in holidays
+
+def get_pattern_fill(dt = None, day = 0):
+    color = {
+        "Holiday": st.PatternFill(start_color="C0C0C0", end_color="C0C0C0", fill_type = "solid"),  # Dark Green
+        "Workday": st.PatternFill(start_color=None, end_color=None, fill_type = "none") # Red
+    }
+    if dt == None:
+        dt = f'{day}:{getMonth(arg="month")}:{getMonth(arg="year")}'
+    if is_holiday(dt):
+        return color['Holiday']
+    else:
+        return color['Workday']

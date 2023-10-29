@@ -51,4 +51,3 @@ excel_format.tabelCreate(spisok, path)
 excel_format.border(sheet, True)
 excelShablon.save(pathShablon)
 excelShablon.close
-
