@@ -90,8 +90,12 @@ def tabelCreate(spisok, path: str, year = 0, month = 0):
     if year == 0:
         year = datetime.datetime.now().year
         month = datetime.datetime.now().month
+    try:
+        filename = f"{path}\\Табель {year}.xlsx"
+    except Exception:
+        print(f'Закройте файл "{filename}"')
+        return
 
-    filename = f"{path}\\Табель {year}.xlsx"
     if os.path.exists(filename):
         #Открываем существующий файл
         wbFileTabel = op.open(filename=filename, data_only=False)
@@ -115,8 +119,15 @@ def tabelCreate(spisok, path: str, year = 0, month = 0):
     if currentSheet is None:
         wbFileTabel.create_sheet(sheetName)
         create.createNewTable(spisok, wbFileTabel[sheetName], path)
+    else:
+        print(f'Файл {filename} с табелем существует!')
+        print("Изменения в существующий файл не вносились!")
 
-    wbFileTabel.save(filename=filename)
+    try:
+        wbFileTabel.save(filename=filename)
+    except Exception:
+        print(f'Закройте файл "{filename}"')
+        return
 
 def sortSpisok(spisok : list, brench = False):
     if brench:

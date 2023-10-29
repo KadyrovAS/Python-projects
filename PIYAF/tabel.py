@@ -15,7 +15,11 @@ if path is None:
 
 
 pathShablon = path + "\\" + "Шаблон.xlsx"
-excel_format.create_holidays(pathShablon)
+try:
+    excel_format.create_holidays(pathShablon)
+except Exception:
+    print('Закройте файл "Шаблон.xlsx"')
+    exit()
 
 excelShablon = op.open(filename = pathShablon, data_only = False)
 # sheetnames = excelShablon.sheetnames
@@ -46,8 +50,9 @@ for person in spisok:
     row += 1
 
 excel_format.sortSpisok(spisok)
-excel_format.tabelCreate(spisok, path)
 
 excel_format.border(sheet, True)
 excelShablon.save(pathShablon)
 excelShablon.close
+
+excel_format.tabelCreate(spisok, path)
